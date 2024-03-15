@@ -43,6 +43,7 @@ plt.title('Residuals of Tide Height Data')
 plt.legend()
 plt.grid(True)
 plt.show()
+plt.savefig('residuals_tide_height.pdf')
 
 plt.figure(figsize=(10, 5))
 bin_width = 0.1  # Choosing a reasonable bin width
@@ -61,3 +62,21 @@ experimental_error = 0.25  # ft, as given
 print(f"Assumed Experimental Error: {experimental_error} ft")
 intrinsic_scatter = np.sqrt(max(std_dev**2 - experimental_error**2, 0))
 print(f"Intrinsic Scatter: {intrinsic_scatter} ft")
+
+jan14_times = data[data['Day'] == 14]['TotalTime']
+jan14_predicted_tides = oscillatory_function(jan14_times.values, *params)  # Ensure it's an array
+first_high_tide_index = jan14_predicted_tides.argmax()  # Index in the filtered array
+first_high_tide_time = jan14_times.iloc[first_high_tide_index]
+tsunami_residual = 2 + oscillatory_function(first_high_tide_time, *params) - oscillatory_function(first_high_tide_time, *params)
+tsunami_deviation_std = tsunami_residual / std_dev
+print(f"Tsunami Deviation: {tsunami_deviation_std:.2f} standard deviations")
+residuals_with_tsunami = np.append(residuals, tsunami_residual)
+plt.figure(figsize=(10, 5))
+plt.hist(residuals_with_tsunami, bins=bins, color='skyblue', edgecolor='black', label='Residuals with Tsunami')
+plt.axvline(tsunami_residual, color='red', linestyle='--', label='Tsunami Residual')
+plt.xlabel('Residuals (ft)')
+plt.ylabel('Frequency')
+plt.title('Histogram of Residuals with Tsunami Outlier')
+plt.legend()
+plt.show()
+plt.savefig('residuals_histogram_with_tsunami.pdf')
