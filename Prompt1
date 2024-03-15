@@ -1,0 +1,10 @@
+def safe_convert_time(time_str):
+    try:
+        return pd.to_datetime(time_str, format='%H:%M').time()
+    except ValueError:
+        return None  # or some default value
+data['Time'] = data['Time'].apply(safe_convert_time)
+data = data.dropna(subset=['Time'])
+
+data['Time'] = data['Time'].apply(lambda t: (t.hour * 3600 + t.minute * 60) / 86400.0)
+data['TotalTime'] = data['Day'] + data['Time']
